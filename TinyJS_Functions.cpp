@@ -32,6 +32,7 @@
 #include <math.h>
 #include <cstdlib>
 #include <sstream>
+#include <iostream>
 
 using namespace std;
 // ----------------------------------------------- Actual Functions
@@ -129,6 +130,18 @@ void scStringFromCharCode(CScriptVar *c, void *) {
     str[0] = c->getParameter("char")->getInt();
     str[1] = 0;
     c->getReturnVar()->setString(str);
+}
+
+void scConsoleLog(CScriptVar *objs, void *) {
+    auto arr = objs->getParameter("objs");
+    ASSERT(arr->isArray());
+    std::ostringstream ss;
+    auto len = arr->getArrayLength();
+    for (size_t i = 0; i < len; i++) {
+      arr->getArrayIndex(i)->getJSON(ss);
+      ss << ", ";
+    }
+    std::cout << "CONSOLE LOG: " << ss.str() << std::endl;
 }
 
 void scIntegerParseInt(CScriptVar *c, void *) {
@@ -236,6 +249,7 @@ void registerFunctions(CTinyJS *tinyJS) {
     tinyJS->addNative("function String.charCodeAt(pos)", scStringCharCodeAt, 0);
     tinyJS->addNative("function String.fromCharCode(char)", scStringFromCharCode, 0);
     tinyJS->addNative("function String.split(separator)", scStringSplit, 0);
+    tinyJS->addNative("function console.log(objs)", scConsoleLog, 0);
     tinyJS->addNative("function Integer.parseInt(str)", scIntegerParseInt, 0); // string to int
     tinyJS->addNative("function Integer.valueOf(str)", scIntegerValueOf, 0); // value of a single character
     tinyJS->addNative("function JSON.stringify(obj, replacer)", scJSONStringify, 0); // convert to JSON. replacer is ignored at the moment

@@ -1286,7 +1286,9 @@ CTinyJS::CTinyJS() {
     stringClass = (new CScriptVar(TINYJS_BLANK_DATA, SCRIPTVAR_OBJECT))->ref();
     arrayClass = (new CScriptVar(TINYJS_BLANK_DATA, SCRIPTVAR_OBJECT))->ref();
     objectClass = (new CScriptVar(TINYJS_BLANK_DATA, SCRIPTVAR_OBJECT))->ref();
+    consoleClass = (new CScriptVar(TINYJS_BLANK_DATA, SCRIPTVAR_OBJECT))->ref();
     root->addChild("String", stringClass);
+    root->addChild("console");
     root->addChild("Array", arrayClass);
     root->addChild("Object", objectClass);
 }
@@ -1297,6 +1299,7 @@ CTinyJS::~CTinyJS() {
     stringClass->unref();
     arrayClass->unref();
     objectClass->unref();
+    consoleClass->unref();
     root->unref();
 
 #if DEBUG_MEMORY
@@ -1461,20 +1464,42 @@ CScriptVarLink *CTinyJS::functionCall(bool &execute, CScriptVarLink *function, C
       functionRoot->addChildNoDup("this", parent);
     // grab in all parameters
     CScriptVarLink *v = function->var->firstChild;
-    while (v) {
+    bool is_console_log = function->name == "log" && parent == consoleClass;
+
+    if (is_console_log) {
+      CScriptVar *vargs = new CScriptVar("");
+      vargs->setArray();
+      int length = 0;
+
+      while (l->tk != ')') {
         CScriptVarLink *value = base(execute);
-        if (execute) {
-            if (value->var->isBasic()) {
-              // pass by value
-              functionRoot->addChild(v->name, value->var->deepCopy());
-            } else {
-              // pass by reference
-              functionRoot->addChild(v->name, value->var);
-            }
+        if (value->var->isBasic()) {
+          // pass by value
+          vargs->setArrayIndex(length++, value->var->deepCopy());
+        } else {
+          // pass by reference
+          vargs->setArrayIndex(length++, value->var);
         }
         CLEAN(value);
         if (l->tk!=')') l->match(',');
-        v = v->nextSibling;
+      }
+      functionRoot->addChild("objs", vargs);
+    } else {
+      while (v) {
+          CScriptVarLink *value = base(execute);
+          if (execute) {
+              if (value->var->isBasic()) {
+                // pass by value
+                functionRoot->addChild(v->name, value->var->deepCopy());
+              } else {
+                // pass by reference
+                functionRoot->addChild(v->name, value->var);
+              }
+          }
+          CLEAN(value);
+          if (l->tk!=')') l->match(',');
+          v = v->nextSibling;
+      }
     }
     l->match(')');
     // setup a return variable

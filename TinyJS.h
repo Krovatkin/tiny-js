@@ -334,6 +334,7 @@ private:
     CScriptVar *stringClass; /// Built in string class
     CScriptVar *objectClass; /// Built in object class
     CScriptVar *arrayClass; /// Built in array class
+    CScriptVar *consoleClass; /// Built in array class
 
     // parsing - in order of precedence
     CScriptVarLink *functionCall(bool &execute, CScriptVarLink *function, CScriptVar *parent);
