@@ -135,6 +135,7 @@ void scStringFromCharCode(CScriptVar *c, void *) {
 void scConsoleLog(CScriptVar *objs, void *) {
     auto arr = objs->getParameter("objs");
     ASSERT(arr->isArray());
+    scObjectDump(arr, nullptr);
     std::ostringstream ss;
     auto len = arr->getArrayLength();
     for (size_t i = 0; i < len; i++) {

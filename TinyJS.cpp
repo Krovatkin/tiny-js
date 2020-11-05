@@ -120,9 +120,7 @@
  */
 
 #include "TinyJS.h"
-#include <assert.h>
 
-#define ASSERT(X) assert(X)
 /* Frees the given link IF it isn't owned by anything else */
 #define CLEAN(x) { CScriptVarLink *__v = x; if (__v && !__v->owned) { delete __v; } }
 /* Create a LINK to point to VAR and free the old link.
@@ -134,6 +132,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <stdio.h>
+#include <iostream>
 
 using namespace std;
 
@@ -1288,7 +1287,7 @@ CTinyJS::CTinyJS() {
     objectClass = (new CScriptVar(TINYJS_BLANK_DATA, SCRIPTVAR_OBJECT))->ref();
     consoleClass = (new CScriptVar(TINYJS_BLANK_DATA, SCRIPTVAR_OBJECT))->ref();
     root->addChild("String", stringClass);
-    root->addChild("console");
+    root->addChild("console", consoleClass);
     root->addChild("Array", arrayClass);
     root->addChild("Object", objectClass);
 }
@@ -1464,6 +1463,10 @@ CScriptVarLink *CTinyJS::functionCall(bool &execute, CScriptVarLink *function, C
       functionRoot->addChildNoDup("this", parent);
     // grab in all parameters
     CScriptVarLink *v = function->var->firstChild;
+    bool is_log = function->name == "log";
+    if (is_log) {
+      std::cerr << "HORRAHH LOG consoleClass " << consoleClass << " parent = " << parent << std::endl;
+    }
     bool is_console_log = function->name == "log" && parent == consoleClass;
 
     if (is_console_log) {

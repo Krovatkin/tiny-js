@@ -38,6 +38,7 @@
 #include <string>
 #include <sstream>
 #include <stdio.h>
+#include <jemalloc/jemalloc.h>
 
 #ifdef MTRACE
   #include <mcheck.h>
@@ -277,6 +278,8 @@ int main(int argc, char **argv)
   }
 
   printf("Done. %d tests, %d pass, %d fail\n", count, passed, count-passed);
+
+  je_mallctl("prof.dump", NULL, NULL, NULL, 0);
 #ifdef INSANE_MEMORY_DEBUG
     memtracing_kill();
 #endif

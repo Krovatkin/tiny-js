@@ -41,13 +41,15 @@
 #endif
 #include <string>
 #include <vector>
+#include <cassert>
 
 #ifndef TRACE
 #define TRACE printf
 #endif // TRACE
 
+#define ASSERT(X) assert(X)
 
-const int TINYJS_LOOP_MAX_ITERATIONS = 8192;
+const int TINYJS_LOOP_MAX_ITERATIONS = 20000;
 
 enum LEX_TYPES {
     LEX_EOF = 0,
