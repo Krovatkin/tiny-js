@@ -38,7 +38,14 @@
 #include <string>
 #include <sstream>
 #include <stdio.h>
-#include <jemalloc/jemalloc.h>
+#include <stdlib.h>
+#include <iostream>
+
+extern "C"
+{
+  // weak symbol: resolved at runtime by the linker if we are using jemalloc, nullptr otherwise
+  int je_mallctl(const char *name, void *oldp, size_t *oldlenp, void *newp, size_t newlen) __attribute__((weak));
+}
 
 #ifdef MTRACE
   #include <mcheck.h>
@@ -239,6 +246,12 @@ bool run_test(const char *filename) {
     printf("FAIL - symbols written to %s\n", fn);
   }
 
+  static const auto MALLOC_CONF = std::getenv("MALLOC_CONF");
+  if (MALLOC_CONF) {
+    std::cerr << "calling je_mallctl\n";
+    je_mallctl("prof.dump", NULL, NULL, NULL, 0);
+  }
+
   delete[] buffer;
   return pass;
 }
@@ -277,9 +290,7 @@ int main(int argc, char **argv)
     test_num++;
   }
 
-  printf("Done. %d tests, %d pass, %d fail\n", count, passed, count-passed);
-
-  je_mallctl("prof.dump", NULL, NULL, NULL, 0);
+  printf("Done. %d tests, %d pass, %d fail\n", count, passed, count-passed);  
 #ifdef INSANE_MEMORY_DEBUG
     memtracing_kill();
 #endif
